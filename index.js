@@ -1,8 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 var jwt = require('jsonwebtoken');
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const app = express()
 const port = process.env.PORT || 5000;
@@ -16,6 +16,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
 function verifyJWT(req, res, next) {
     const authHeader = req.header.authorization;
+    console.log('aaaaaaaaa', authHeader);
     if (!authHeader) {
         return res.status(401).send({ meassge: 'UnAutorize Access' })
     }
@@ -63,7 +64,7 @@ async function run() {
     // })
 
 
-
+    // post user 
 
     app.put('/user/:email', async (req, res) => {
         const email = req.params.email;
@@ -72,13 +73,17 @@ async function run() {
         const options = { upsert: true };
         const updateDoc = {
             $set: user,
-        }; console.log(filter, options, updateDoc);
+        };
         const result = await usersCollaction.updateOne(filter, updateDoc, options);
-        // const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
-        res.send(result);
+        const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET_KEY, { expiresIn: '1d' })
+        res.send({ result, token });
     });
 
-
+    // get all user
+    app.get('/user', async (req, res) => {
+        const users = await usersCollaction.find().toArray();
+        res.send(users);
+    });
 
 
 

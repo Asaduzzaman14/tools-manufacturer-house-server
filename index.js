@@ -15,7 +15,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
 
 function verifyJWT(req, res, next) {
-    const authHeader = req.headers.Authorization;
+    const authHeader = req.headers.authorization;
     // console.log('aaaaaaaaa', authHeader);
     if (!authHeader) {
         return res.status(401).send({ meassge: 'unAutorize Access' })
@@ -37,38 +37,45 @@ function verifyJWT(req, res, next) {
 async function run() {
     // equire('crypto').randomBytes(64).toString('hex')
     await client.connect()
-    const toolsCollaction = client.db('manufacturer-parts').collection('parts')
-    const usersCollaction = client.db('manufacturer-parts').collection('users')
-    const reviewCollaction = client.db('manufacturer-parts').collection('reviews')
+    const toolsCollection = client.db('manufacturer-parts').collection('parts')
+    const usersCollection = client.db('manufacturer-parts').collection('users')
+    const reviewCollection = client.db('manufacturer-parts').collection('reviews')
 
 
 
 
 
     app.get('/parts', async (req, res) => {
-        const tools = await toolsCollaction.find().toArray()
+        const tools = await toolsCollection.find().toArray()
         res.send(tools)
     })
+
+    app.post('/tool', async (req, res) => {
+        const tool = req.body;
+        const result = await toolsCollection.insertOne(tool);
+        res.send(result);
+
+    })
+
 
 
     app.get('/tool/:id', async (req, res) => {
         const id = req.params.id
         const query = { _id: ObjectId(id) }
-        const tool = await toolsCollaction.findOne(query)
+        const tool = await toolsCollection.findOne(query)
         res.send(tool)
     })
 
     // post user review
     app.post('/review', async (req, res) => {
         const review = req.body;
-        const result = await reviewCollaction.insertOne(review);
+        const result = await reviewCollection.insertOne(review);
         res.send(result);
-
     })
 
     // get all review
     app.get('/review', async (req, res) => {
-        const reviews = await reviewCollaction.find().toArray()
+        const reviews = await reviewCollection.find().toArray()
         res.send(reviews)
     })
 
@@ -84,16 +91,39 @@ async function run() {
         const updateDoc = {
             $set: user,
         };
-        const result = await usersCollaction.updateOne(filter, updateDoc, options);
+        const result = await usersCollection.updateOne(filter, updateDoc, options);
         const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET_KEY, { expiresIn: '1d' })
         res.send({ result, token });
     });
 
     // get all user
-    app.get('/user', async (req, res) => {
-        const users = await usersCollaction.find().toArray();
+    app.get('/user', verifyJWT, async (req, res) => {
+        const users = await usersCollection.find().toArray();
         res.send(users);
     });
+
+
+    //  make admin
+    app.put('/user/admin/:email', verifyJWT, async (req, res) => {
+        const email = req.params.email;
+        const filter = { email: email };
+        const updateDoc = {
+            $set: { role: 'admin' },
+        };
+        const result = await usersCollection.updateOne(filter, updateDoc);
+        res.send(result);
+    })
+
+
+
+
+
+
+
+
+
+
+
 
 }
 

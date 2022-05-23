@@ -5,11 +5,10 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 
 const app = express()
-
 const port = process.env.PORT || 5000;
 
 app.use(cors())
-app.use(express())
+app.use(express.json())
 
 const uri = `mongodb+srv://${process.env.DB_PARTS}:${process.env.DB_PASS}@cluster0.8cczehf.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
@@ -18,7 +17,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 function verifyJWT(req, res, next) {
     const authHeader = req.header.authorization;
     if (!authHeader) {
-        return express.status(401).send({ meassge: 'UnAutorize Access' })
+        return res.status(401).send({ meassge: 'UnAutorize Access' })
     }
     const token = authHeader.split(' ')[1];
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET_KEY, function (err, decoded) {
@@ -37,6 +36,8 @@ async function run() {
     // equire('crypto').randomBytes(64).toString('hex')
     await client.connect()
     const toolsCollaction = client.db('manufacturer-parts').collection('parts')
+    const usersCollaction = client.db('manufacturer-parts').collection('users')
+    const reviewCollaction = client.db('manufacturer-parts').collection('reviews')
 
 
 
@@ -50,13 +51,16 @@ async function run() {
 
     app.get('/tool/:id', async (req, res) => {
         const id = req.params.id
-        console.log(id);
         const query = { _id: ObjectId(id) }
         const tool = await toolsCollaction.findOne(query)
         res.send(tool)
     })
 
+    // post user review
+    // app.post('/review', async (req, res) => {
 
+
+    // })
 
 
 
@@ -68,13 +72,11 @@ async function run() {
         const options = { upsert: true };
         const updateDoc = {
             $set: user,
-        };
-
-        const result = await userCollection.updateOne(filter, updateDoc, options);
-        const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d' })
-        res.send({ result, token });
-
-    })
+        }; console.log(filter, options, updateDoc);
+        const result = await usersCollaction.updateOne(filter, updateDoc, options);
+        // const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+        res.send(result);
+    });
 
 
 

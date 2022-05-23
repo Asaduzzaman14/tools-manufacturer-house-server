@@ -15,15 +15,16 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
 
 function verifyJWT(req, res, next) {
-    const authHeader = req.header.authorization;
-    console.log('aaaaaaaaa', authHeader);
+    const authHeader = req.headers.Authorization;
+    // console.log('aaaaaaaaa', authHeader);
     if (!authHeader) {
-        return res.status(401).send({ meassge: 'UnAutorize Access' })
+        return res.status(401).send({ meassge: 'unAutorize Access' })
     }
     const token = authHeader.split(' ')[1];
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET_KEY, function (err, decoded) {
         // console.log(err);
         if (err) {
+            console.log(err);
             return res.status(403).send({ message: 'Forbidden access' })
         }
         req.decoded = decoded;
@@ -58,10 +59,13 @@ async function run() {
     })
 
     // post user review
-    // app.post('/review', async (req, res) => {
+    app.post('/review', async (req, res) => {
+        const review = req.body;
+        console.log(review);
+        const result = await reviewCollaction.insertOne(review);
+        res.send(result);
 
-
-    // })
+    })
 
 
     // post user 
@@ -84,12 +88,6 @@ async function run() {
         const users = await usersCollaction.find().toArray();
         res.send(users);
     });
-
-
-
-
-
-
 
 }
 

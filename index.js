@@ -61,11 +61,17 @@ async function run() {
     // post user review
     app.post('/review', async (req, res) => {
         const review = req.body;
-        console.log(review);
         const result = await reviewCollaction.insertOne(review);
         res.send(result);
 
     })
+
+    // get all review
+    app.get('/review', async (req, res) => {
+        const reviews = await reviewCollaction.find().toArray()
+        res.send(reviews)
+    })
+
 
 
     // post user 

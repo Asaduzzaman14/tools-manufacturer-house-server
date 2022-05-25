@@ -39,6 +39,7 @@ async function run() {
     const usersCollection = client.db('manufacturer-parts').collection('users')
     const reviewCollection = client.db('manufacturer-parts').collection('reviews')
     const orderCollection = client.db('manufacturer-parts').collection('orders')
+    const userInfoCollection = client.db('manufacturer-parts').collection('Information')
 
 
 
@@ -62,6 +63,13 @@ async function run() {
         const tools = req.body;
         const result = await orderCollection.insertOne(tools);
         res.send(result);
+    })
+
+    app.get('/payOrder/:id', verifyJWT, async (req, res) => {
+        const id = req.params.id
+        const query = { _id: ObjectId(id) }
+        const tool = await orderCollection.findOne(query)
+        res.send(tool)
     })
 
     // get my orders 
@@ -92,11 +100,12 @@ async function run() {
         const newQuantity = req.body;
         console.log(newQuantity);
         const filter = { _id: ObjectId(id) }
+        const options = { upsert: true };
         const updateDoc = {
             $set: { availableQuantity: newQuantity.availableQuantity }
 
         };
-        const result = await toolsCollection.updateOne(filter, updateDoc);
+        const result = await toolsCollection.updateOne(filter, updateDoc, options);
         res.send(result);
     });
 
@@ -166,11 +175,29 @@ async function run() {
     })
     app.delete('/deleteOrder/:id', verifyJWT, async (req, res) => {
         const id = req.params.id;
-        console.log('id is', id);
         const filter = { _id: ObjectId(id) }
         const result = await orderCollection.deleteOne(filter)
         res.send(result)
     })
+
+    //save user data 
+
+    app.post('/userinfo', async (req, res) => {
+        const userInfo = req.body;
+        console.log(userInfo);
+        const result = await userInfoCollection.insertOne(userInfo)
+        res.send(result)
+
+    })
+
+    app.get('/userdetail', async (req, res) => {
+        const email = req.params.email;
+        console.log(email);
+        const query = { email: email }
+        const users = await userInfoCollection.find(query).toArray();
+        res.send(users);
+    });
+
 
 
 

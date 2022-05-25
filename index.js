@@ -79,7 +79,7 @@ async function run() {
 
 
     //  get all orders 
-    app.get('/manageOrders', async (req, res) => {
+    app.get('/manageOrders', verifyJWT, async (req, res) => {
         const orders = await orderCollection.find().toArray()
         res.send(orders)
     })
@@ -164,13 +164,13 @@ async function run() {
         const result = await usersCollection.updateOne(filter, updateDoc);
         res.send(result);
     })
-    app.delete('/tool/:id', async (req, res) => {
+    app.delete('/deleteOrder/:id', verifyJWT, async (req, res) => {
         const id = req.params.id;
-        const query = { _id: ObjectId(id) }
-        const result = await toolsCollection.deleteOne(query)
+        console.log('id is', id);
+        const filter = { _id: ObjectId(id) }
+        const result = await orderCollection.deleteOne(filter)
         res.send(result)
     })
-
 
 
 

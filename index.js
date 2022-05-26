@@ -7,6 +7,10 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
 const port = process.env.PORT || 5000;
 
+
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY)
+
+
 app.use(cors())
 app.use(express.json())
 
@@ -33,7 +37,6 @@ function verifyJWT(req, res, next) {
 }
 
 async function run() {
-    // equire('crypto').randomBytes(64).toString('hex')
     await client.connect()
     const toolsCollection = client.db('manufacturer-parts').collection('parts')
     const usersCollection = client.db('manufacturer-parts').collection('users')
@@ -41,6 +44,18 @@ async function run() {
     const orderCollection = client.db('manufacturer-parts').collection('orders')
     const userInfoCollection = client.db('manufacturer-parts').collection('Information')
 
+
+    app.post('/create-payment-intent', verifyJWT, async (req, res) => {
+        const service = req.body;
+        const price = service.price;
+        const amount = price * 100;
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: amount,
+            currency: 'usd',
+            payment_method_types: ['card']
+        });
+        res.send({ clientSecret: paymentIntent.client_secret });
+    })
 
 
 

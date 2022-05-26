@@ -227,8 +227,6 @@ async function run() {
     });
 
 
-
-
     app.get('/profilrdetail/:email', async (req, res) => {
         const email = req.params.email;
         const query = { email: email }

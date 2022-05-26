@@ -213,18 +213,18 @@ async function run() {
 
     })
 
-    // app.put('/userinfo/:email', async (req, res) => {
-    //     const email = req.params.email;
-    //     const user = req.body;
-    //     console.log(user);
-    //     const filter = { email: email };
-    //     const options = { upsert: true };
-    //     const updateDoc = {
-    //         $set: user,
-    //     };
-    //     const result = await usersCollection.updateOne(filter, updateDoc, options);
-    //     res.send(result);
-    // });
+    app.put('/userinfo/:email', async (req, res) => {
+        const email = req.params.email;
+        const user = req.body;
+        console.log(user);
+        const filter = { email: email };
+        const options = { upsert: true };
+        const updateDoc = {
+            $set: user,
+        };
+        const result = await usersCollection.updateOne(filter, updateDoc, options);
+        res.send(result);
+    });
 
 
 

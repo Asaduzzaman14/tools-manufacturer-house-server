@@ -65,12 +65,14 @@ async function run() {
         res.send(result);
     })
 
-    app.get('/payOrder/:id', verifyJWT, async (req, res) => {
+    app.get('/payorder/:id', verifyJWT, async (req, res) => {
         const id = req.params.id
         const query = { _id: ObjectId(id) }
         const tool = await orderCollection.findOne(query)
         res.send(tool)
     })
+
+
 
     // get my orders 
     app.get('/orders', verifyJWT, async (req, res) => {
@@ -184,18 +186,40 @@ async function run() {
 
     app.post('/userinfo', async (req, res) => {
         const userInfo = req.body;
-        console.log(userInfo);
-        const result = await userInfoCollection.insertOne(userInfo)
-        res.send(result)
+        const query = { email: userInfo.email }
+        const users = await userInfoCollection.findOne(query)
+        if (!users) {
+            const result = await userInfoCollection.insertOne(userInfo)
+            return res.send({ success: true, info: result })
+        }
+        else {
+            return;
+        }
 
     })
 
-    app.get('/userdetail', async (req, res) => {
+    // app.put('/userinfo/:email', async (req, res) => {
+    //     const email = req.params.email;
+    //     const user = req.body;
+    //     console.log(user);
+    //     const filter = { email: email };
+    //     const options = { upsert: true };
+    //     const updateDoc = {
+    //         $set: user,
+    //     };
+    //     const result = await usersCollection.updateOne(filter, updateDoc, options);
+    //     res.send(result);
+    // });
+
+
+
+
+    app.get('/profilrdetail/:email', async (req, res) => {
         const email = req.params.email;
-        console.log(email);
         const query = { email: email }
         const users = await userInfoCollection.find(query).toArray();
         res.send(users);
+
     });
 
 

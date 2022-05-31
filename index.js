@@ -43,18 +43,19 @@ async function run() {
     const reviewCollection = client.db('manufacturer-parts').collection('reviews')
     const orderCollection = client.db('manufacturer-parts').collection('orders')
     const userInfoCollection = client.db('manufacturer-parts').collection('Information')
+    const paymentsCollection = client.db('manufacturer-parts').collection('payments')
 
 
     app.post('/create-payment-intent', verifyJWT, async (req, res) => {
-        const service = req.body;
-        const price = service.price;
+        const body = req.body;
+        const price = body.totalPrice;
         const amount = price * 100;
         const paymentIntent = await stripe.paymentIntents.create({
             amount: amount,
             currency: 'usd',
             payment_method_types: ['card']
         });
-        res.send({ clientSecret: paymentIntent.client_secret });
+        res.send({ clientSecret: paymentIntent.client_secret })
     })
 
 
@@ -72,6 +73,25 @@ async function run() {
         res.send(result);
 
     })
+
+    app.patch('/tool/:id', verifyJWT, async (req, res) => {
+
+        const id = req.params.id;
+        const payment = req.body;
+        console.log(payment);
+        const filter = { _id: ObjectId(id) }
+        const updatedDoc = {
+            $set: {
+                paid: true,
+                transectionId: payment.transectionId,
+            }
+        }
+
+        const result = await paymentsCollection.insertOne(payment)
+        const updateOrder = await orderCollection.updateOne(filter, updatedDoc)
+        res.send(updatedDoc)
+    })
+
 
     // order tool
     app.post('/order', async (req, res) => {
@@ -213,17 +233,17 @@ async function run() {
 
     })
 
-    app.put('/userinfo/:email', async (req, res) => {
+    app.patch('/userinfo/:email', verifyJWT, async (req, res) => {
         const email = req.params.email;
+        console.log(email);
         const user = req.body;
-        console.log(user);
         const filter = { email: email };
         const options = { upsert: true };
         const updateDoc = {
             $set: user,
         };
-        const result = await usersCollection.updateOne(filter, updateDoc, options);
-        res.send(result);
+        const result = await userInfoCollection.updateOne(filter, updateDoc, options);
+        res.send(updateDoc);
     });
 
 

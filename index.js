@@ -20,6 +20,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
 function verifyJWT(req, res, next) {
     const authHeader = req.headers.authorization;
+    // console.log(authHeader);
     if (!authHeader) {
         return res.status(401).send({ meassge: 'unAutorize Access' })
     }
@@ -27,7 +28,7 @@ function verifyJWT(req, res, next) {
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET_KEY, function (err, decoded) {
         // console.log(err);
         if (err) {
-            console.log(err);
+            // console.log(err);
             return res.status(403).send({ message: 'Forbidden access' })
         }
         req.decoded = decoded;
@@ -65,6 +66,13 @@ async function run() {
         res.send(tools)
     })
 
+    app.delete('/deleteTols/:id', verifyJWT, async (req, res) => {
+        const id = req.params.id;
+        const filter = { _id: ObjectId(id) }
+        const result = await toolsCollection.deleteOne(filter)
+        res.send(result)
+    })
+
 
 
     app.post('/tool', async (req, res) => {
@@ -78,7 +86,7 @@ async function run() {
 
         const id = req.params.id;
         const payment = req.body;
-        console.log(payment);
+        // console.log(payment);
         const filter = { _id: ObjectId(id) }
         const updatedDoc = {
             $set: {
@@ -112,6 +120,7 @@ async function run() {
     // get my orders 
     app.get('/orders', verifyJWT, async (req, res) => {
         const email = req.query.email
+        // console.log(email);
         const decodedEmail = req.decoded.email;
         if (email === decodedEmail) {
             const myOrders = await orderCollection.find({ email }).toArray()
@@ -135,7 +144,7 @@ async function run() {
     app.patch('/tool/:id', async (req, res) => {
         const id = req.params.id;
         const newQuantity = req.body;
-        console.log(newQuantity);
+        // console.log(newQuantity);
         const filter = { _id: ObjectId(id) }
         const options = { upsert: true };
         const updateDoc = {
@@ -195,7 +204,7 @@ async function run() {
         const email = req.params.email;
         const user = await usersCollection.findOne({ email: email })
         const isAdmin = user.role === "admin"
-        console.log(isAdmin);
+        // console.log(isAdmin);
         res.send({ admin: isAdmin })
 
     })
@@ -235,7 +244,7 @@ async function run() {
 
     app.patch('/userinfo/:email', verifyJWT, async (req, res) => {
         const email = req.params.email;
-        console.log(email);
+        // console.log(email);
         const user = req.body;
         const filter = { email: email };
         const options = { upsert: true };
@@ -273,5 +282,5 @@ app.get('/', (req, res) => {
 })
 
 app.listen(port, () => {
-    console.log(`Menufacturerr lisining is ${port}`);
+    // console.log(`Menufacturerr lisining is ${port}`);
 })

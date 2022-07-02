@@ -86,7 +86,7 @@ async function run() {
 
         const id = req.params.id;
         const payment = req.body;
-        // console.log(payment);
+        console.log('payment', payment);
         const filter = { _id: ObjectId(id) }
         const updatedDoc = {
             $set: {
